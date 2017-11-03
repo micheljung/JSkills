@@ -1,6 +1,6 @@
 JSkills
 =======
-[![Build Status](https://travis-ci.org/nsp/JSkills.svg?branch=master)](https://travis-ci.org/nsp/JSkills)
+[![Build Status](https://travis-ci.org/gesundkrank/JSkills.svg?branch=master)](https://travis-ci.org/gesundkrank/JSkills)
 
 A detailed implementation of the TrueSkill algorithm in Java.
 
@@ -15,9 +15,9 @@ and define the dependency in your project as following
 
 ```XML
 <dependency>
-    <groupId>jskills</groupId>
+    <groupId>de.gesundkrank.jskills</groupId>
     <artifactId>jskills</artifactId>
-    <version>0.9.1-SNAPSHOT</version>
+    <version>1.0</version>
 </dependency>
 ```
 
