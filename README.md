@@ -24,4 +24,4 @@ and define the dependency in your project as following
 License
 -------
 
-See `LICENSE.txt` in the project root.
+See `LICENSE` in the project root.
