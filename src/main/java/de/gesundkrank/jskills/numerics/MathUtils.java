@@ -7,16 +7,28 @@ import java.util.Collection;
  */
 public final class MathUtils {
 
-	/** Don't allow instantiation **/
-	private MathUtils() { }
-	
-	/** Square a number **/
-	public static double square(double x) { return x*x; }
-	
-	
-	public static double mean(Collection<Double> collection) {
-	    double ret = 0;
-	    for(Double d : collection) ret += d.doubleValue();
-	    return ret/collection.size();
-	}
+    /**
+     * Don't allow instantiation
+     **/
+    private MathUtils() {
+    }
+
+    /**
+     * Square a number
+     *
+     * @param x number to square
+     * @return squared number
+     **/
+    public static double square(double x) {
+        return x * x;
+    }
+
+
+    public static double mean(Collection<Double> collection) {
+        double ret = 0;
+        for (double d : collection) {
+            ret += d;
+        }
+        return ret / collection.size();
+    }
 }

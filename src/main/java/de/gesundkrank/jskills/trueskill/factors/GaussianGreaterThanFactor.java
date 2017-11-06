@@ -3,15 +3,16 @@ package de.gesundkrank.jskills.trueskill.factors;
 import de.gesundkrank.jskills.factorgraphs.Message;
 import de.gesundkrank.jskills.factorgraphs.Variable;
 import de.gesundkrank.jskills.numerics.GaussianDistribution;
+
 import static de.gesundkrank.jskills.numerics.GaussianDistribution.*;
 import static de.gesundkrank.jskills.trueskill.TruncatedGaussianCorrectionFunctions.*;
 
 /**
- * Factor representing a team difference that has exceeded the draw margin.
- * <remarks>See the accompanying math paper for more details.</remarks>
+ * Factor representing a team difference that has exceeded the draw margin. See the accompanying
+ * math paper for more details.
  */
-public class GaussianGreaterThanFactor extends GaussianFactor
-{
+public class GaussianGreaterThanFactor extends GaussianFactor {
+
     private final double epsilon;
 
     public GaussianGreaterThanFactor(double epsilon, Variable<GaussianDistribution> variable) {
@@ -20,51 +21,52 @@ public class GaussianGreaterThanFactor extends GaussianFactor
         createVariableToMessageBinding(variable);
     }
 
-    @Override 
+    @Override
     public double getLogNormalization() {
         GaussianDistribution marginal = getVariables().get(0).getValue();
         GaussianDistribution message = getMessages().get(0).getValue();
-        GaussianDistribution messageFromVariable = divide(marginal,message);
+        GaussianDistribution messageFromVariable = divide(marginal, message);
         return -logProductNormalization(messageFromVariable, message)
                +
                Math.log(
-                   cumulativeTo((messageFromVariable.getMean() - epsilon)/
-                                                     messageFromVariable.getStandardDeviation()));
+                       cumulativeTo((messageFromVariable.getMean() - epsilon) /
+                                    messageFromVariable.getStandardDeviation()));
     }
 
     @Override
-    protected double updateMessage(Message<GaussianDistribution> message, Variable<GaussianDistribution> variable) {
+    protected double updateMessage(Message<GaussianDistribution> message,
+                                   Variable<GaussianDistribution> variable) {
         GaussianDistribution oldMarginal = new GaussianDistribution(variable.getValue());
         GaussianDistribution oldMessage = new GaussianDistribution(message.getValue());
-        GaussianDistribution messageFromVar = divide(oldMarginal,oldMessage);
+        GaussianDistribution messageFromVar = divide(oldMarginal, oldMessage);
 
         double c = messageFromVar.getPrecision();
         double d = messageFromVar.getPrecisionMean();
 
         double sqrtC = Math.sqrt(c);
 
-        double dOnSqrtC = d/sqrtC;
+        double dOnSqrtC = d / sqrtC;
 
-        double epsilsonTimesSqrtC = epsilon *sqrtC;
+        double epsilsonTimesSqrtC = epsilon * sqrtC;
         d = messageFromVar.getPrecisionMean();
 
         double denom = 1.0 - wExceedsMargin(dOnSqrtC, epsilsonTimesSqrtC);
 
-        double newPrecision = c/denom;
+        double newPrecision = c / denom;
         double newPrecisionMean = (d +
                                    sqrtC *
                                    vExceedsMargin(dOnSqrtC, epsilsonTimesSqrtC)) /
-                                   denom;
+                                  denom;
 
         GaussianDistribution newMarginal = fromPrecisionMean(newPrecisionMean, newPrecision);
 
-        GaussianDistribution newMessage = divide(mult(oldMessage,newMarginal),oldMarginal);
+        GaussianDistribution newMessage = divide(mult(oldMessage, newMarginal), oldMarginal);
 
         // Update the message and marginal
         message.setValue(newMessage);
         variable.setValue(newMarginal);
 
         // Return the difference in the new marginal
-        return sub(newMarginal, oldMarginal);
+        return absoluteDifference(newMarginal, oldMarginal);
     }
 }

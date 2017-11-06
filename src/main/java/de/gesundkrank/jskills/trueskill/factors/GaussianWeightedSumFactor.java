@@ -12,8 +12,8 @@ import java.util.List;
 import static de.gesundkrank.jskills.numerics.GaussianDistribution.*;
 
 /**
- * Factor that sums together multiple Gaussians.
- * <remarks>See the accompanying math paper for more details.</remarks>
+ * Factor that sums together multiple Gaussians. See the accompanying math paper for more
+ * details.
  */
 public class GaussianWeightedSumFactor extends GaussianFactor {
 
@@ -45,18 +45,20 @@ public class GaussianWeightedSumFactor extends GaussianFactor {
         // The first weights are a straightforward copy
         // v_0 = a_1*v_1 + a_2*v_2 + ... + a_n * v_n
         weights[0] = new double[variableWeights.length];
-        System.arraycopy(variableWeights, 0,  weights[0], 0, variableWeights.length);
-		weightsSquared[0] = new double[variableWeights.length];
-        for (int i = 0; i < weights[0].length; i++)
-            weightsSquared[0][i] = weights[0][i]* weights[0][i];
+        System.arraycopy(variableWeights, 0, weights[0], 0, variableWeights.length);
+        weightsSquared[0] = new double[variableWeights.length];
+        for (int i = 0; i < weights[0].length; i++) {
+            weightsSquared[0][i] = weights[0][i] * weights[0][i];
+        }
 
         // 0..n-1
-        int[] temp = new int[1+variablesToSum.size()];
-        for (int i = 0; i < temp.length; i++) temp[i] = i;
+        int[] temp = new int[1 + variablesToSum.size()];
+        for (int i = 0; i < temp.length; i++) {
+            temp[i] = i;
+        }
         variableIndexOrdersForWeights.add(temp);
 
-
-        // The rest move the variables around and divide out the constant. 
+        // The rest move the variables around and divide out the constant.
         // For example:
         // v_1 = (-a_2 / a_1) * v_2 + (-a3/a1) * v_3 + ... + (1.0 / a_1) * v_0
         // By convention, we'll put the v_0 term at the end
@@ -79,38 +81,47 @@ public class GaussianWeightedSumFactor extends GaussianFactor {
                  currentWeightSourceIndex < variableWeights.length;
                  currentWeightSourceIndex++) {
 
-                if (currentWeightSourceIndex == (weightsIndex - 1))
+                if (currentWeightSourceIndex == (weightsIndex - 1)) {
                     continue;
+                }
 
-                double currentWeight = (-variableWeights[currentWeightSourceIndex]/variableWeights[weightsIndex - 1]);
+                double
+                        currentWeight =
+                        (-variableWeights[currentWeightSourceIndex] / variableWeights[weightsIndex
+                                                                                      - 1]);
 
                 if (variableWeights[weightsIndex - 1] == 0)
-                    // HACK: Getting around division by zero
+                // HACK: Getting around division by zero
+                {
                     currentWeight = 0;
+                }
 
                 currentWeights[currentDestinationWeightIndex] = currentWeight;
-                currentWeightsSquared[currentDestinationWeightIndex] = currentWeight*currentWeight;
+                currentWeightsSquared[currentDestinationWeightIndex] =
+                        currentWeight * currentWeight;
 
                 variableIndices[currentDestinationWeightIndex + 1] = currentWeightSourceIndex + 1;
                 currentDestinationWeightIndex++;
             }
 
             // And the final one
-            double finalWeight = 1.0/variableWeights[weightsIndex - 1];
+            double finalWeight = 1.0 / variableWeights[weightsIndex - 1];
 
             if (variableWeights[weightsIndex - 1] == 0)
-                // HACK: Getting around division by zero
+            // HACK: Getting around division by zero
+            {
                 finalWeight = 0;
+            }
 
             currentWeights[currentDestinationWeightIndex] = finalWeight;
-            currentWeightsSquared[currentDestinationWeightIndex] = finalWeight*finalWeight;
+            currentWeightsSquared[currentDestinationWeightIndex] = finalWeight * finalWeight;
             variableIndices[variableIndices.length - 1] = 0;
             variableIndexOrdersForWeights.add(variableIndices);
         }
 
         createVariableToMessageBinding(sumVariable);
 
-        for(Variable<GaussianDistribution> currentVariable : variablesToSum) {
+        for (Variable<GaussianDistribution> currentVariable : variablesToSum) {
             createVariableToMessageBinding(currentVariable);
         }
     }
@@ -124,13 +135,15 @@ public class GaussianWeightedSumFactor extends GaussianFactor {
 
         // We start at 1 since offset 0 has the sum
         for (int i = 1; i < vars.size(); i++) {
-            result += GaussianDistribution.logRatioNormalization(vars.get(i).getValue(), messages.get(i).getValue());
+            result +=
+                    GaussianDistribution.logRatioNormalization(vars.get(i).getValue(),
+                                                               messages.get(i).getValue());
         }
 
         return result;
     }
 
-    private double UpdateHelper(double[] weights, double[] weightsSquared,
+    private double updateHelper(double[] weights, double[] weightsSquared,
                                 List<Message<GaussianDistribution>> messages,
                                 List<Variable<GaussianDistribution>> variables) {
         // Potentially look at http://mathworld.wolfram.com/NormalSumDistribution.html for clues as 
@@ -148,35 +161,46 @@ public class GaussianWeightedSumFactor extends GaussianFactor {
         for (int i = 0; i < weightsSquared.length; i++) {
             // These flow directly from the paper
 
-            inverseOfNewPrecisionSum += weightsSquared[i]/
-                                        (variables.get(i + 1).getValue().getPrecision() - messages.get(i + 1).getValue().getPrecision());
+            inverseOfNewPrecisionSum += weightsSquared[i] /
+                                        (variables.get(i + 1).getValue().getPrecision() - messages
+                                                .get(i + 1).getValue().getPrecision());
 
-            GaussianDistribution diff = divide(variables.get(i + 1).getValue(), messages.get(i + 1).getValue());
-            anotherInverseOfNewPrecisionSum += weightsSquared[i]/diff.getPrecision();
+            GaussianDistribution
+                    diff =
+                    divide(variables.get(i + 1).getValue(), messages.get(i + 1).getValue());
+            anotherInverseOfNewPrecisionSum += weightsSquared[i] / diff.getPrecision();
 
             weightedMeanSum += weights[i]
                                *
-                               (variables.get(i + 1).getValue().getPrecisionMean() - messages.get(i + 1).getValue().getPrecisionMean())
+                               (variables.get(i + 1).getValue().getPrecisionMean() - messages
+                                       .get(i + 1).getValue().getPrecisionMean())
                                /
-                               (variables.get(i + 1).getValue().getPrecision() - messages.get(i + 1).getValue().getPrecision());
+                               (variables.get(i + 1).getValue().getPrecision() - messages.get(i + 1)
+                                       .getValue().getPrecision());
 
-            anotherWeightedMeanSum += weights[i]*diff.getPrecisionMean()/diff.getPrecision();
+            anotherWeightedMeanSum += weights[i] * diff.getPrecisionMean() / diff.getPrecision();
         }
 
-        double newPrecision = 1.0/inverseOfNewPrecisionSum;
-        double anotherNewPrecision = 1.0/anotherInverseOfNewPrecisionSum;
+        double newPrecision = 1.0 / inverseOfNewPrecisionSum;
+        double anotherNewPrecision = 1.0 / anotherInverseOfNewPrecisionSum;
 
-        double newPrecisionMean = newPrecision*weightedMeanSum;
-        double anotherNewPrecisionMean = anotherNewPrecision*anotherWeightedMeanSum;
+        double newPrecisionMean = newPrecision * weightedMeanSum;
+        double anotherNewPrecisionMean = anotherNewPrecision * anotherWeightedMeanSum;
 
-        GaussianDistribution oldMarginalWithoutMessage = divide(marginal0,message0);
+        GaussianDistribution oldMarginalWithoutMessage = divide(marginal0, message0);
 
-        GaussianDistribution newMessage = GaussianDistribution.fromPrecisionMean(newPrecisionMean, newPrecision);
-        GaussianDistribution anotherNewMessage = GaussianDistribution.fromPrecisionMean(anotherNewPrecisionMean, anotherNewPrecision);
-        if(!newMessage.equals(anotherNewMessage))
+        GaussianDistribution
+                newMessage =
+                GaussianDistribution.fromPrecisionMean(newPrecisionMean, newPrecision);
+        GaussianDistribution
+                anotherNewMessage =
+                GaussianDistribution
+                        .fromPrecisionMean(anotherNewPrecisionMean, anotherNewPrecision);
+        if (!newMessage.equals(anotherNewMessage)) {
             throw new RuntimeException("newMessage and anotherNewMessage aren't the same");
+        }
 
-        GaussianDistribution newMarginal = mult(oldMarginalWithoutMessage,newMessage);
+        GaussianDistribution newMarginal = mult(oldMarginalWithoutMessage, newMessage);
 
         // Update the message and marginal
 
@@ -184,9 +208,9 @@ public class GaussianWeightedSumFactor extends GaussianFactor {
         variables.get(0).setValue(newMarginal);
 
         // Return the difference in the new marginal
-        return sub(newMarginal, marginal0);
+        return absoluteDifference(newMarginal, marginal0);
     }
-    
+
 
     @Override
     public double updateMessage(int messageIndex) {
@@ -195,8 +219,8 @@ public class GaussianWeightedSumFactor extends GaussianFactor {
 
         Guard.argumentIsValidIndex(messageIndex, allMessages.size(), "messageIndex");
 
-        List<Message<GaussianDistribution>> updatedMessages = new ArrayList<Message<GaussianDistribution>>();
-        List<Variable<GaussianDistribution>> updatedVariables = new ArrayList<Variable<GaussianDistribution>>();
+        List<Message<GaussianDistribution>> updatedMessages = new ArrayList<>();
+        List<Variable<GaussianDistribution>> updatedVariables = new ArrayList<>();
 
         int[] indicesToUse = variableIndexOrdersForWeights.get(messageIndex);
 
@@ -208,7 +232,8 @@ public class GaussianWeightedSumFactor extends GaussianFactor {
             updatedVariables.add(allVariables.get(indicesToUse[i]));
         }
 
-        return UpdateHelper(weights[messageIndex], weightsSquared[messageIndex], updatedMessages, updatedVariables);
+        return updateHelper(weights[messageIndex], weightsSquared[messageIndex], updatedMessages,
+                            updatedVariables);
     }
 
     private static String createName(Variable<GaussianDistribution> sumVariable,
@@ -220,10 +245,11 @@ public class GaussianWeightedSumFactor extends GaussianFactor {
         for (int i = 0; i < variablesToSum.size(); i++) {
             boolean isFirst = (i == 0);
 
-            if (isFirst && (weights[i] < 0))
+            if (isFirst && (weights[i] < 0)) {
                 sb.append("-");
+            }
 
-            sb.append(String.format("%.2f",Math.abs(weights[i])));
+            sb.append(String.format("%.2f", Math.abs(weights[i])));
             sb.append("*[");
             sb.append(variablesToSum.get(i));
             sb.append("]");

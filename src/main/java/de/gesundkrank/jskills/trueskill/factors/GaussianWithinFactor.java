@@ -9,8 +9,8 @@ import static de.gesundkrank.jskills.trueskill.TruncatedGaussianCorrectionFuncti
 import static de.gesundkrank.jskills.trueskill.TruncatedGaussianCorrectionFunctions.wWithinMargin;
 
 /**
- * Factor representing a team difference that has not exceeded the draw margin.
- * <remarks>See the accompanying math paper for more details.</remarks>
+ * Factor representing a team difference that has not exceeded the draw margin. See the
+ * accompanying math paper for more details.
  */
 public class GaussianWithinFactor extends GaussianFactor {
 
@@ -29,43 +29,44 @@ public class GaussianWithinFactor extends GaussianFactor {
         GaussianDistribution messageFromVariable = divide(marginal, message);
         double mean = messageFromVariable.getMean();
         double std = messageFromVariable.getStandardDeviation();
-        double z = cumulativeTo((epsilon - mean)/std)
+        double z = cumulativeTo((epsilon - mean) / std)
                    -
-                   cumulativeTo((-epsilon - mean)/std);
+                   cumulativeTo((-epsilon - mean) / std);
 
         return -logProductNormalization(messageFromVariable, message) + Math.log(z);
     }
 
     @Override
-    protected double updateMessage(Message<GaussianDistribution> message, Variable<GaussianDistribution> variable) {
+    protected double updateMessage(Message<GaussianDistribution> message,
+                                   Variable<GaussianDistribution> variable) {
         GaussianDistribution oldMarginal = new GaussianDistribution(variable.getValue());
         GaussianDistribution oldMessage = new GaussianDistribution(message.getValue());
-        GaussianDistribution messageFromVariable = divide(oldMarginal,oldMessage);
+        GaussianDistribution messageFromVariable = divide(oldMarginal, oldMessage);
 
         double c = messageFromVariable.getPrecision();
         double d = messageFromVariable.getPrecisionMean();
 
         double sqrtC = Math.sqrt(c);
-        double dOnSqrtC = d/sqrtC;
-        
-        double epsilonTimesSqrtC = epsilon *sqrtC;
+        double dOnSqrtC = d / sqrtC;
+
+        double epsilonTimesSqrtC = epsilon * sqrtC;
         d = messageFromVariable.getPrecisionMean();
 
         double denominator = 1.0 - wWithinMargin(dOnSqrtC, epsilonTimesSqrtC);
-        double newPrecision = c/denominator;
+        double newPrecision = c / denominator;
         double newPrecisionMean = (d +
-                                   sqrtC*
-                                   vWithinMargin(dOnSqrtC, epsilonTimesSqrtC))/
+                                   sqrtC *
+                                   vWithinMargin(dOnSqrtC, epsilonTimesSqrtC)) /
                                   denominator;
 
         GaussianDistribution newMarginal = fromPrecisionMean(newPrecisionMean, newPrecision);
-        GaussianDistribution newMessage = divide(mult(oldMessage,newMarginal),oldMarginal);
+        GaussianDistribution newMessage = divide(mult(oldMessage, newMarginal), oldMarginal);
 
         // Update the message and marginal
         message.setValue(newMessage);
         variable.setValue(newMarginal);
 
         // Return the difference in the new marginal
-        return sub(newMarginal, oldMarginal);
+        return absoluteDifference(newMarginal, oldMarginal);
     }
 }

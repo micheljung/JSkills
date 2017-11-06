@@ -3,7 +3,7 @@ package de.gesundkrank.jskills;
 /**
  * Represents a player who has a {@link Rating}.
  */
-public class Player<T> implements IPlayer, ISupportPartialPlay, ISupportPartialUpdate {
+public class Player<T> implements IPlayer, SupportPartialPlay, SupportPartialUpdate {
 
     // = 100% play time
     private static final double DefaultPartialPlayPercentage = 1.0;

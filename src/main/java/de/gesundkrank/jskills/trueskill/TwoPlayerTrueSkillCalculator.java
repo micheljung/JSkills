@@ -16,20 +16,20 @@ import java.util.*;
 import static de.gesundkrank.jskills.numerics.MathUtils.square;
 
 /**
- * Calculates the new ratings for only two players.
- * <remarks>
- * When you only have two players, a lot of the math simplifies. The main purpose of this class
- * is to show the bare minimum of what a TrueSkill implementation should have.
- * </remarks>
+ * Calculates the new ratings for only two players. When you only have two players, a lot of the
+ * math simplifies. The main purpose of this class is to show the bare minimum of what a TrueSkill
+ * implementation should have.
  */
-public class TwoPlayerTrueSkillCalculator extends SkillCalculator
-{
+public class TwoPlayerTrueSkillCalculator extends SkillCalculator {
+
     public TwoPlayerTrueSkillCalculator() {
-        super(EnumSet.noneOf(SupportedOptions.class), Range.<ITeam>exactly(2), Range.<IPlayer>exactly(1));
+        super(EnumSet.noneOf(SupportedOptions.class), Range.<ITeam>exactly(2),
+              Range.<IPlayer>exactly(1));
     }
 
     @Override
-    public Map<IPlayer, Rating> calculateNewRatings(GameInfo gameInfo, Collection<ITeam> teams, int... teamRanks) {
+    public Map<IPlayer, Rating> calculateNewRatings(GameInfo gameInfo, Collection<ITeam> teams,
+                                                    int... teamRanks) {
         // Basic argument checking
         Guard.argumentNotNull(gameInfo, "gameInfo");
         validateTeamCountAndPlayersCountPerTeam(teams);
@@ -50,9 +50,11 @@ public class TwoPlayerTrueSkillCalculator extends SkillCalculator
 
         Map<IPlayer, Rating> results = new HashMap<IPlayer, Rating>();
         results.put(winner, calculateNewRating(gameInfo, winnerPreviousRating, loserPreviousRating,
-                                               wasDraw ? PairwiseComparison.DRAW : PairwiseComparison.WIN));
+                                               wasDraw ? PairwiseComparison.DRAW
+                                                       : PairwiseComparison.WIN));
         results.put(loser, calculateNewRating(gameInfo, loserPreviousRating, winnerPreviousRating,
-                wasDraw ? PairwiseComparison.DRAW : PairwiseComparison.LOSE));
+                                              wasDraw ? PairwiseComparison.DRAW
+                                                      : PairwiseComparison.LOSE));
 
         // And we're done!
         return results;
@@ -61,21 +63,26 @@ public class TwoPlayerTrueSkillCalculator extends SkillCalculator
     private static Rating calculateNewRating(GameInfo gameInfo, Rating selfRating,
                                              Rating opponentRating, PairwiseComparison comparison) {
 
-        double drawMargin = DrawMargin.GetDrawMarginFromDrawProbability(gameInfo.getDrawProbability(), gameInfo.getBeta());
+        double
+                drawMargin =
+                DrawMargin.GetDrawMarginFromDrawProbability(gameInfo.getDrawProbability(),
+                                                            gameInfo.getBeta());
 
         double c =
-            Math.sqrt(
-                square(selfRating.getStandardDeviation())
-                +
-                square(opponentRating.getStandardDeviation())
-                +
-                2*square(gameInfo.getBeta()));
+                Math.sqrt(
+                        square(selfRating.getStandardDeviation())
+                        +
+                        square(opponentRating.getStandardDeviation())
+                        +
+                        2 * square(gameInfo.getBeta()));
 
         double winningMean = selfRating.getMean();
         double losingMean = opponentRating.getMean();
 
         switch (comparison) {
-            case WIN: case DRAW: /* NOP */ break;
+            case WIN:
+            case DRAW: /* NOP */
+                break;
             case LOSE:
                 winningMean = opponentRating.getMean();
                 losingMean = selfRating.getMean();
@@ -99,13 +106,18 @@ public class TwoPlayerTrueSkillCalculator extends SkillCalculator
             rankMultiplier = 1;
         }
 
-        double meanMultiplier = (square(selfRating.getStandardDeviation()) + square(gameInfo.getDynamicsFactor()))/c;
+        double
+                meanMultiplier =
+                (square(selfRating.getStandardDeviation()) + square(gameInfo.getDynamicsFactor()))
+                / c;
 
-        double varianceWithDynamics = square(selfRating.getStandardDeviation()) + square(gameInfo.getDynamicsFactor());
-        double stdDevMultiplier = varianceWithDynamics/square(c);
+        double
+                varianceWithDynamics =
+                square(selfRating.getStandardDeviation()) + square(gameInfo.getDynamicsFactor());
+        double stdDevMultiplier = varianceWithDynamics / square(c);
 
-        double newMean = selfRating.getMean() + (rankMultiplier*meanMultiplier*v);
-        double newStdDev = Math.sqrt(varianceWithDynamics*(1 - w*stdDevMultiplier));
+        double newMean = selfRating.getMean() + (rankMultiplier * meanMultiplier * v);
+        double newStdDev = Math.sqrt(varianceWithDynamics * (1 - w * stdDevMultiplier));
 
         return new Rating(newMean, newStdDev);
     }
@@ -116,7 +128,7 @@ public class TwoPlayerTrueSkillCalculator extends SkillCalculator
         validateTeamCountAndPlayersCountPerTeam(teams);
 
         Iterator<ITeam> teamIt = teams.iterator();
-        
+
         Rating player1Rating = teamIt.next().values().iterator().next();
         Rating player2Rating = teamIt.next().values().iterator().next();
 
@@ -127,18 +139,18 @@ public class TwoPlayerTrueSkillCalculator extends SkillCalculator
 
         // This is the square root part of the equation:
         double sqrtPart =
-            Math.sqrt(
-                (2*betaSquared)
-                /
-                (2*betaSquared + player1SigmaSquared + player2SigmaSquared));
+                Math.sqrt(
+                        (2 * betaSquared)
+                        /
+                        (2 * betaSquared + player1SigmaSquared + player2SigmaSquared));
 
         // This is the exponent part of the equation:
         double expPart =
-            Math.exp(
-                (-1*square(player1Rating.getMean() - player2Rating.getMean()))
-                /
-                (2*(2*betaSquared + player1SigmaSquared + player2SigmaSquared)));
+                Math.exp(
+                        (-1 * square(player1Rating.getMean() - player2Rating.getMean()))
+                        /
+                        (2 * (2 * betaSquared + player1SigmaSquared + player2SigmaSquared)));
 
-        return sqrtPart*expPart;
+        return sqrtPart * expPart;
     }
 }
