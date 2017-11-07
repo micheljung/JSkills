@@ -3,11 +3,11 @@ package de.gesundkrank.jskills.trueskill.factors;
 import de.gesundkrank.jskills.factorgraphs.Message;
 import de.gesundkrank.jskills.factorgraphs.Variable;
 import de.gesundkrank.jskills.numerics.GaussianDistribution;
+
 import static de.gesundkrank.jskills.numerics.GaussianDistribution.*;
 
 /**
- * Connects two variables and adds uncertainty.
- * <remarks>See the accompanying math paper for more details.</remarks>
+ * Connects two variables and adds uncertainty. See the accompanying math paper for more details.
  */
 public class GaussianLikelihoodFactor extends GaussianFactor {
 
@@ -16,7 +16,7 @@ public class GaussianLikelihoodFactor extends GaussianFactor {
     public GaussianLikelihoodFactor(double betaSquared, Variable<GaussianDistribution> variable1,
                                     Variable<GaussianDistribution> variable2) {
         super(String.format("Likelihood of %s going to %s", variable2, variable1));
-        precision = 1.0/betaSquared;
+        precision = 1.0 / betaSquared;
         createVariableToMessageBinding(variable1);
         createVariableToMessageBinding(variable2);
     }
@@ -26,23 +26,27 @@ public class GaussianLikelihoodFactor extends GaussianFactor {
         return logRatioNormalization(variables.get(0).getValue(), messages.get(0).getValue());
     }
 
-    private double UpdateHelper(Message<GaussianDistribution> message1, Message<GaussianDistribution> message2,
-                                Variable<GaussianDistribution> variable1, Variable<GaussianDistribution> variable2) {
+    private double UpdateHelper(Message<GaussianDistribution> message1,
+                                Message<GaussianDistribution> message2,
+                                Variable<GaussianDistribution> variable1,
+                                Variable<GaussianDistribution> variable2) {
         GaussianDistribution message1Value = new GaussianDistribution(message1.getValue());
         GaussianDistribution message2Value = new GaussianDistribution(message2.getValue());
 
         GaussianDistribution marginal1 = new GaussianDistribution(variable1.getValue());
         GaussianDistribution marginal2 = new GaussianDistribution(variable2.getValue());
 
-        double a = precision /(precision + marginal2.getPrecision() - message2Value.getPrecision());
+        double
+                a =
+                precision / (precision + marginal2.getPrecision() - message2Value.getPrecision());
 
         GaussianDistribution newMessage = GaussianDistribution.fromPrecisionMean(
-            a*(marginal2.getPrecisionMean() - message2Value.getPrecisionMean()),
-            a*(marginal2.getPrecision() - message2Value.getPrecision()));
+                a * (marginal2.getPrecisionMean() - message2Value.getPrecisionMean()),
+                a * (marginal2.getPrecision() - message2Value.getPrecision()));
 
-        GaussianDistribution oldMarginalWithoutMessage = divide(marginal1,message1Value);
+        GaussianDistribution oldMarginalWithoutMessage = divide(marginal1, message1Value);
 
-        GaussianDistribution newMarginal = mult(oldMarginalWithoutMessage,newMessage);
+        GaussianDistribution newMarginal = mult(oldMarginalWithoutMessage, newMessage);
 
         // Update the message and marginal
 
@@ -50,7 +54,7 @@ public class GaussianLikelihoodFactor extends GaussianFactor {
         variable1.setValue(newMarginal);
 
         // Return the difference in the new marginal
-        return sub(newMarginal, marginal1);
+        return absoluteDifference(newMarginal, marginal1);
     }
 
     @Override

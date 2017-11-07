@@ -11,12 +11,14 @@ public class TruncatedGaussianCorrectionFunctions {
     }
 
     /**
-     * The "V" function where the team performance difference is greater than the draw margin.
-     * <remarks>In the reference F# implementation, this is referred to as "the additive correction
-     * of a single-sided truncated Gaussian with unit variance."</remarks>
+     * The "V" function where the team performance difference is greater than the draw margin. In
+     * the reference F# implementation, this is referred to as "the additive correction of a
+     * single-sided truncated Gaussian with unit variance."
      *
-     * @param drawMargin In the paper, it's referred to as just "ε".
-     * @returns
+     * @param teamPerformanceDifference Difference of the teams.
+     * @param drawMargin                In the paper, it's referred to as just "ε".
+     * @param c                         constant??
+     * @return double
      */
     public static double vExceedsMargin(double teamPerformanceDifference, double drawMargin,
                                         double c) {
@@ -34,11 +36,14 @@ public class TruncatedGaussianCorrectionFunctions {
     }
 
     /**
-     * The "W" function where the team performance difference is greater than the draw margin.
-     * <remarks>In the reference F# implementation, this is referred to as "the multiplicative
-     * correction of a single-sided truncated Gaussian with unit variance."</remarks>
+     * The "W" function where the team performance difference is greater than the draw margin. In
+     * the reference F# implementation, this is referred to as "the multiplicative correction of a
+     * single-sided truncated Gaussian with unit variance."
      *
-     * @returns
+     * @param teamPerformanceDifference Difference of the teams.
+     * @param drawMargin                In the paper, it's referred to as just "ε".
+     * @param c                         constant??
+     * @return double
      */
     public static double wExceedsMargin(double teamPerformanceDifference, double drawMargin,
                                         double c) {
